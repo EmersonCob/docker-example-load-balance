@@ -5,56 +5,54 @@ services:
       dockerfile: ./docker/nginx.dockerfile
       context: .
     image: nginx
-    container_name: container-lb
+    container_name: nginx_lb
     ports:
-      - "80:80"
+      - "8000:80"
     networks: 
       - minha-rede
     depends_on:
-      - "app1"
-      - "app2"
-      - "app3"
+      - "postgresql_one"
+      - "postgresql_two"
 
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server
-    container_name: container-sql
-    ports:
-      - "1433:1433"
+  postgresql_one:
+    image: postgres
+    container_name: postgresql_one_lb
     environment:
-      SA_PASSWORD: "Docker12345"
-      ACCEPT_EULA: "Y"
-    networks: 
-      - minha-rede
-  
-  app1:
-    image: docker-example-app
-    container_name: container-app1
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "Cob.2403"
     ports:
-      - "5000"
-    networks: 
+      - "5431:5432"
+    volumes:
+      - /home/ercosta/Desenvolvimento/Docker-Compose/PostgreSQL:/var/lib/postgresql/data
+    networks:
       - minha-rede
-    depends_on:
-      - "sqlserver"
 
-  app2:
-    image: docker-example-app
-    container_name: container-app2
+  postgresql_two:
+    image: postgres
+    container_name: postgresql_two_lb
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "Cob.2403"
     ports:
-      - "5000"
-    networks: 
+      - "5433:5432"
+    volumes:
+      - /home/ercosta/Desenvolvimento/Docker-Compose/PostgreSQL:/var/lib/postgresql/data
+    networks:
       - minha-rede
-    depends_on:
-      - "sqlserver"
-          
-  app3:
-    image: docker-example-app
-    container_name: container-app3
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_lb
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "ercosta90@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "Cob.2403"
     ports:
-      - "5000"
-    networks: 
-      - minha-rede
+      - "6543:80"
     depends_on:
-      - "sqlserver"
+      - postgresql_one
+      - postgresql_two
+    networks:
+      - minha-rede
+
 networks: 
     minha-rede:
-        driver: bridge
